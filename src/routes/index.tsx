@@ -19,9 +19,9 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Dashboard — TrustGuard AI" },
+      { title: "Dashboard — SecureAI" },
       { name: "description", content: "Real-time fraud, churn and trust analytics across your customer base." },
-      { property: "og:title", content: "Dashboard — TrustGuard AI" },
+      { property: "og:title", content: "Dashboard — SecureAI" },
       { property: "og:description", content: "Real-time fraud, churn and trust analytics." },
     ],
   }),

@@ -10,9 +10,9 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/fraud-alerts")({
   head: () => ({
     meta: [
-      { title: "Fraud Alerts — TrustGuard AI" },
-      { name: "description", content: "Review, filter and act on real-time fraud alerts flagged by the TrustGuard risk engine." },
-      { property: "og:title", content: "Fraud Alerts — TrustGuard AI" },
+      { title: "Fraud Alerts — SecureAI" },
+      { name: "description", content: "Review, filter and act on real-time fraud alerts flagged by the SecureAI risk engine." },
+      { property: "og:title", content: "Fraud Alerts — SecureAI" },
       { property: "og:description", content: "Real-time fraud alert review and action center." },
     ],
   }),

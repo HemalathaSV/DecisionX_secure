@@ -13,9 +13,9 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/reports")({
   head: () => ({
     meta: [
-      { title: "Reports — TrustGuard AI" },
+      { title: "Reports — SecureAI" },
       { name: "description", content: "Monthly performance reports: fraud prevented, revenue saved, retention success and false positive reduction." },
-      { property: "og:title", content: "Reports — TrustGuard AI" },
+      { property: "og:title", content: "Reports — SecureAI" },
       { property: "og:description", content: "Analytics reports with exportable insights." },
     ],
   }),
@@ -70,7 +70,7 @@ function ReportsPage() {
         <div>
           <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Analytics</div>
           <h1 className="mt-1 text-3xl font-bold md:text-4xl">Reports</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Executive-ready snapshots of TrustGuard AI performance.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Executive-ready snapshots of SecureAI performance.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <select 

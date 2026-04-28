@@ -10,9 +10,9 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/churn-risk")({
   head: () => ({
     meta: [
-      { title: "Churn Risk — TrustGuard AI" },
+      { title: "Churn Risk — SecureAI" },
       { name: "description", content: "Identify customers at risk of churning and trigger AI-recommended retention actions." },
-      { property: "og:title", content: "Churn Risk — TrustGuard AI" },
+      { property: "og:title", content: "Churn Risk — SecureAI" },
       { property: "og:description", content: "AI-driven churn prediction and retention playbook." },
     ],
   }),

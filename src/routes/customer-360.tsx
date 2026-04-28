@@ -10,9 +10,9 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/customer-360")({
   head: () => ({
     meta: [
-      { title: "Customer 360 — TrustGuard AI" },
+      { title: "Customer 360 — SecureAI" },
       { name: "description", content: "Unified customer profile with trust, fraud and churn scores plus explainable AI decisions." },
-      { property: "og:title", content: "Customer 360 — TrustGuard AI" },
+      { property: "og:title", content: "Customer 360 — SecureAI" },
       { property: "og:description", content: "Unified customer profile with explainable AI." },
     ],
   }),
@@ -153,7 +153,7 @@ function Customer360Page() {
             <Button variant="outline" onClick={() => toast.success("Cashback offered")}>Offer Cashback</Button>
           </div>
           <div className="mt-5 rounded-xl border border-border/60 bg-white/[0.03] p-3 text-xs text-muted-foreground">
-            Outcome is logged, reviewable, and feeds back into the TrustGuard model daily.
+            Outcome is logged, reviewable, and feeds back into the SecureAI model daily.
           </div>
         </GlassCard>
       </div>

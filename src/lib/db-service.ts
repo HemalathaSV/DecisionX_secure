@@ -21,18 +21,42 @@ export const safeSetDoc = async (col: string, id: string, data: any) => {
   }
 };
 
+let isGenerating = false;
+
 export const safeGetDocs = async (col: string) => {
+  let result: any[] = [];
   if (isFirebaseReady()) {
     try {
       const snap = await getDocs(collection(db, col));
-      return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      result = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     } catch (e) {
       console.warn("Firebase fetch failed, reading local", e);
-      return getLocalCol(col);
+      result = getLocalCol(col);
     }
   } else {
-    return getLocalCol(col);
+    result = getLocalCol(col);
   }
+
+  // Auto-generate if empty
+  if (result.length === 0 && !isGenerating) {
+    isGenerating = true;
+    await initializeFakeDatasets();
+    isGenerating = false;
+    
+    // Fetch again
+    if (isFirebaseReady()) {
+      try {
+        const snap = await getDocs(collection(db, col));
+        result = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      } catch (e) {
+        result = getLocalCol(col);
+      }
+    } else {
+      result = getLocalCol(col);
+    }
+  }
+  
+  return result;
 };
 
 const saveLocal = (col: string, id: string, data: any) => {

@@ -33,7 +33,7 @@ function Brand() {
         <ShieldCheck className="h-5 w-5 text-primary-foreground" />
       </div>
       <div className="leading-tight">
-        <div className="text-base font-semibold tracking-tight">TrustGuard <span className="gradient-text">AI</span></div>
+        <div className="text-base font-semibold tracking-tight">Secure<span className="gradient-text">AI</span></div>
         <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Fintech Intelligence</div>
       </div>
     </div>
@@ -121,7 +121,7 @@ function TopBar({ onMenu }: { onMenu: () => void }) {
           </div>
           <div className="hidden text-left leading-tight sm:block">
             <div className="text-sm font-medium">Admin Das</div>
-            <div className="text-[11px] text-muted-foreground">Risk Ops · TrustGuard</div>
+            <div className="text-[11px] text-muted-foreground">Risk Ops · SecureAI</div>
           </div>
         </div>
       </div>
