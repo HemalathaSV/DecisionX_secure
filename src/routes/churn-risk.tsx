@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Sparkles, Gift, Crown, Percent, HeartHandshake } from "lucide-react";
 import { GlassCard, ScoreRing, Avatar } from "@/components/primitives";
-import { CHURN_CUSTOMERS } from "@/lib/mock-data";
+import { safeGetDocs } from "@/lib/db-service";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -21,17 +21,29 @@ export const Route = createFileRoute("/churn-risk")({
 
 function ChurnRiskPage() {
   const [sort, setSort] = useState<"score" | "name">("score");
+  const [customers, setCustomers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      const data = await safeGetDocs("churn_users");
+      setCustomers(data);
+      setLoading(false);
+    };
+    load();
+  }, []);
   const sorted = useMemo(() => {
-    const copy = [...CHURN_CUSTOMERS];
+    const copy = [...customers];
     if (sort === "score") copy.sort((a, b) => b.score - a.score);
     else copy.sort((a, b) => a.name.localeCompare(b.name));
     return copy;
   }, [sort]);
 
   const buckets = {
-    high: CHURN_CUSTOMERS.filter((c) => c.score >= 80).length,
-    medium: CHURN_CUSTOMERS.filter((c) => c.score >= 50 && c.score < 80).length,
-    low: CHURN_CUSTOMERS.filter((c) => c.score < 50).length,
+    high: customers.filter((c) => c.score >= 80).length,
+    medium: customers.filter((c) => c.score >= 50 && c.score < 80).length,
+    low: customers.filter((c) => c.score < 50).length,
   };
 
   return (
@@ -43,7 +55,7 @@ function ChurnRiskPage() {
       </div>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <SummaryPill label="At Risk" value={CHURN_CUSTOMERS.length} tone="primary" />
+        <SummaryPill label="At Risk" value={customers.length} tone="primary" />
         <SummaryPill label="High (80+)" value={buckets.high} tone="danger" />
         <SummaryPill label="Medium" value={buckets.medium} tone="warning" />
         <SummaryPill label="Low" value={buckets.low} tone="success" />
@@ -68,9 +80,15 @@ function ChurnRiskPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {sorted.map((c, i) => (
-          <ChurnCard key={c.id} c={c} delay={i * 50} />
-        ))}
+        {loading ? (
+          <div className="col-span-1 sm:col-span-2 lg:col-span-3 text-center py-12 text-muted-foreground">Loading churn data...</div>
+        ) : sorted.length === 0 ? (
+          <div className="col-span-1 sm:col-span-2 lg:col-span-3 text-center py-12 text-muted-foreground">No churn data available. Generate it in Dataset Manager.</div>
+        ) : (
+          sorted.map((c, i) => (
+            <ChurnCard key={c.id} c={c} delay={i * 50} />
+          ))
+        )}
       </div>
     </div>
   );
@@ -91,7 +109,7 @@ function SummaryPill({ label, value, tone }: { label: string; value: number; ton
   );
 }
 
-function ChurnCard({ c, delay }: { c: typeof CHURN_CUSTOMERS[number]; delay: number }) {
+function ChurnCard({ c, delay }: { c: any; delay: number }) {
   const tone = c.score >= 80 ? "danger" : c.score >= 50 ? "warning" : "success";
   const actionIcon = c.action.includes("Cashback") ? Gift
     : c.action.includes("VIP") ? Crown

@@ -1,8 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { Search, Filter, MapPin, Smartphone } from "lucide-react";
+import { useMemo, useState, useEffect } from "react";
+import { Search, Filter, MapPin, Smartphone, ShieldCheck, ShieldAlert, Key } from "lucide-react";
 import { GlassCard, StatusBadge } from "@/components/primitives";
-import { FRAUD_ALERTS, formatINRFull, type Severity } from "@/lib/mock-data";
+import { formatINRFull, type Severity } from "@/lib/mock-data";
+import { safeGetDocs, safeSetDoc } from "@/lib/db-service";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/fraud-alerts")({
@@ -22,22 +24,45 @@ type Filter = "today" | "high" | "blocked" | "all";
 function FraudAlertsPage() {
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
+  const [alerts, setAlerts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      const data = await safeGetDocs("fraud_alerts");
+      setAlerts(data);
+      setLoading(false);
+    };
+    load();
+  }, []);
+
+  const handleAction = async (id: string, actionStr: string, status: string) => {
+    const alertList = [...alerts];
+    const index = alertList.findIndex(a => a.id === id);
+    if (index >= 0) {
+      alertList[index] = { ...alertList[index], action: actionStr, status };
+      setAlerts(alertList);
+      toast.success(`Action applied: ${actionStr}`);
+      await safeSetDoc("fraud_alerts", id, alertList[index]);
+    }
+  };
 
   const filtered = useMemo(() => {
-    return FRAUD_ALERTS.filter((a) => {
+    return alerts.filter((a) => {
       if (filter === "high" && a.fraudScore < 70) return false;
       if (filter === "blocked" && a.status !== "blocked") return false;
       if (filter === "today" && a.timestamp.includes("h") && parseInt(a.timestamp) > 3) return false;
       if (query && !`${a.customer} ${a.city} ${a.reason}`.toLowerCase().includes(query.toLowerCase())) return false;
       return true;
     });
-  }, [filter, query]);
+  }, [filter, query, alerts]);
 
   const counts = {
-    today: FRAUD_ALERTS.filter((a) => !a.timestamp.includes("h") || parseInt(a.timestamp) <= 3).length,
-    high: FRAUD_ALERTS.filter((a) => a.fraudScore >= 70).length,
-    blocked: FRAUD_ALERTS.filter((a) => a.status === "blocked").length,
-    all: FRAUD_ALERTS.length,
+    today: alerts.filter((a) => !a.timestamp.includes("h") || parseInt(a.timestamp) <= 3).length,
+    high: alerts.filter((a) => a.fraudScore >= 70).length,
+    blocked: alerts.filter((a) => a.status === "blocked").length,
+    all: alerts.length,
   };
 
   return (
@@ -95,12 +120,14 @@ function FraudAlertsPage() {
                 <th className="px-5 py-3 font-medium">Status</th>
               </tr>
             </thead>
-            <tbody>
-              {filtered.map((a, i) => (
+              {loading && (
+                <tr><td colSpan={8} className="px-5 py-10 text-center text-muted-foreground">Loading alerts...</td></tr>
+              )}
+              {!loading && filtered.map((a, i) => (
                 <tr key={a.id} className="border-b border-border/50 transition-colors hover:bg-white/[0.03]" style={{ animationDelay: `${i * 30}ms` }}>
                   <td className="px-5 py-4">
                     <div className="font-medium">{a.customer}</div>
-                    <div className="text-xs text-muted-foreground">{a.timestamp}</div>
+                    <div className="text-xs text-muted-foreground">{a.timestamp || 'Just now'}</div>
                   </td>
                   <td className="px-5 py-4 font-semibold tabular-nums">{formatINRFull(a.amount)}</td>
                   <td className="px-5 py-4">
@@ -122,20 +149,23 @@ function FraudAlertsPage() {
                     <ScoreBar value={a.fraudScore} />
                   </td>
                   <td className="px-5 py-4 max-w-[220px] text-muted-foreground">{a.reason}</td>
-                  <td className="px-5 py-4">
-                    <span className="rounded-lg border border-border bg-white/[0.03] px-2.5 py-1 text-xs font-medium">{a.action}</span>
+                  <td className="px-5 py-4 min-w-[200px]">
+                    <div className="flex gap-1.5">
+                      <button onClick={() => handleAction(a.id, "Allow", "safe")} className="p-1.5 rounded-md hover:bg-success/20 text-success transition-colors" title="Allow"><ShieldCheck className="w-4 h-4" /></button>
+                      <button onClick={() => handleAction(a.id, "Ask MFA", "mfa")} className="p-1.5 rounded-md hover:bg-warning/20 text-warning transition-colors" title="Ask MFA"><Key className="w-4 h-4" /></button>
+                      <button onClick={() => handleAction(a.id, "Block", "blocked")} className="p-1.5 rounded-md hover:bg-destructive/20 text-destructive transition-colors" title="Block"><ShieldAlert className="w-4 h-4" /></button>
+                    </div>
                   </td>
                   <td className="px-5 py-4"><StatusBadge status={a.status as Severity} /></td>
                 </tr>
               ))}
-              {filtered.length === 0 && (
+              {!loading && filtered.length === 0 && (
                 <tr><td colSpan={8} className="px-5 py-10 text-center text-muted-foreground">No alerts match your filters.</td></tr>
               )}
-            </tbody>
           </table>
         </div>
         <div className="flex items-center justify-between border-t border-border px-5 py-3 text-xs text-muted-foreground">
-          <span>Showing <span className="text-foreground font-medium">{filtered.length}</span> of {FRAUD_ALERTS.length} alerts</span>
+          <span>Showing <span className="text-foreground font-medium">{filtered.length}</span> alerts</span>
           <span>Updated just now</span>
         </div>
       </GlassCard>

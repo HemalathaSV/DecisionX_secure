@@ -9,12 +9,19 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as FraudAlertsRouteImport } from './routes/fraud-alerts'
+import { Route as DatasetManagerRouteImport } from './routes/dataset-manager'
 import { Route as Customer360RouteImport } from './routes/customer-360'
 import { Route as ChurnRiskRouteImport } from './routes/churn-risk'
 import { Route as IndexRouteImport } from './routes/index'
 
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ReportsRoute = ReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
@@ -23,6 +30,11 @@ const ReportsRoute = ReportsRouteImport.update({
 const FraudAlertsRoute = FraudAlertsRouteImport.update({
   id: '/fraud-alerts',
   path: '/fraud-alerts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DatasetManagerRoute = DatasetManagerRouteImport.update({
+  id: '/dataset-manager',
+  path: '/dataset-manager',
   getParentRoute: () => rootRouteImport,
 } as any)
 const Customer360Route = Customer360RouteImport.update({
@@ -45,23 +57,29 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/churn-risk': typeof ChurnRiskRoute
   '/customer-360': typeof Customer360Route
+  '/dataset-manager': typeof DatasetManagerRoute
   '/fraud-alerts': typeof FraudAlertsRoute
   '/reports': typeof ReportsRoute
+  '/settings': typeof SettingsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/churn-risk': typeof ChurnRiskRoute
   '/customer-360': typeof Customer360Route
+  '/dataset-manager': typeof DatasetManagerRoute
   '/fraud-alerts': typeof FraudAlertsRoute
   '/reports': typeof ReportsRoute
+  '/settings': typeof SettingsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/churn-risk': typeof ChurnRiskRoute
   '/customer-360': typeof Customer360Route
+  '/dataset-manager': typeof DatasetManagerRoute
   '/fraud-alerts': typeof FraudAlertsRoute
   '/reports': typeof ReportsRoute
+  '/settings': typeof SettingsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -69,29 +87,49 @@ export interface FileRouteTypes {
     | '/'
     | '/churn-risk'
     | '/customer-360'
+    | '/dataset-manager'
     | '/fraud-alerts'
     | '/reports'
+    | '/settings'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/churn-risk' | '/customer-360' | '/fraud-alerts' | '/reports'
+  to:
+    | '/'
+    | '/churn-risk'
+    | '/customer-360'
+    | '/dataset-manager'
+    | '/fraud-alerts'
+    | '/reports'
+    | '/settings'
   id:
     | '__root__'
     | '/'
     | '/churn-risk'
     | '/customer-360'
+    | '/dataset-manager'
     | '/fraud-alerts'
     | '/reports'
+    | '/settings'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ChurnRiskRoute: typeof ChurnRiskRoute
   Customer360Route: typeof Customer360Route
+  DatasetManagerRoute: typeof DatasetManagerRoute
   FraudAlertsRoute: typeof FraudAlertsRoute
   ReportsRoute: typeof ReportsRoute
+  SettingsRoute: typeof SettingsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reports': {
       id: '/reports'
       path: '/reports'
@@ -104,6 +142,13 @@ declare module '@tanstack/react-router' {
       path: '/fraud-alerts'
       fullPath: '/fraud-alerts'
       preLoaderRoute: typeof FraudAlertsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dataset-manager': {
+      id: '/dataset-manager'
+      path: '/dataset-manager'
+      fullPath: '/dataset-manager'
+      preLoaderRoute: typeof DatasetManagerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/customer-360': {
@@ -134,8 +179,10 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ChurnRiskRoute: ChurnRiskRoute,
   Customer360Route: Customer360Route,
+  DatasetManagerRoute: DatasetManagerRoute,
   FraudAlertsRoute: FraudAlertsRoute,
   ReportsRoute: ReportsRoute,
+  SettingsRoute: SettingsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

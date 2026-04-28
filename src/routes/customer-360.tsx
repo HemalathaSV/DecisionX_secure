@@ -3,6 +3,8 @@ import { LogIn, ArrowRightLeft, ShieldAlert, KeyRound, Smartphone, MapPin, Calen
 import { GlassCard, ScoreRing, Avatar } from "@/components/primitives";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { safeGetDocs } from "@/lib/db-service";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/customer-360")({
@@ -33,6 +35,28 @@ const EXPLAIN = [
 ];
 
 function Customer360Page() {
+  const [customer, setCustomer] = useState<any>(null);
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("profile");
+
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      const custs = await safeGetDocs("customers");
+      const frauds = await safeGetDocs("fraud_alerts");
+      if (custs.length > 0) {
+        setCustomer(custs[0]);
+        setTransactions(frauds.filter((f: any) => f.customer === custs[0].name));
+      }
+      setLoading(false);
+    };
+    load();
+  }, []);
+
+  if (loading) return <div className="py-12 text-center text-muted-foreground">Loading Customer 360...</div>;
+  if (!customer) return <div className="py-12 text-center text-muted-foreground">No customer data. Generate in Dataset Manager.</div>;
+
   return (
     <div className="space-y-6">
       <div>
@@ -45,26 +69,41 @@ function Customer360Page() {
       <GlassCard>
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-4">
-            <Avatar name="Rahul Sharma" className="h-16 w-16 text-lg" />
+            <Avatar name={customer.name} className="h-16 w-16 text-lg" />
             <div>
-              <div className="text-xl font-semibold">Rahul Sharma</div>
-              <div className="text-xs text-muted-foreground">Customer ID · TG-8401293 · Joined Mar 2022</div>
+              <div className="text-xl font-semibold">{customer.name}</div>
+              <div className="text-xs text-muted-foreground">Customer ID · {customer.id} · Tier: {customer.tier}</div>
               <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
-                <Chip icon={MapPin} text="Mumbai, IN" />
-                <Chip icon={Calendar} text="Last login: Today, 10:42" />
-                <Chip icon={Smartphone} text="New Device" tone="warning" />
+                <Chip icon={MapPin} text={customer.city} />
+                <Chip icon={Calendar} text={`Last login: ${customer.lastLogin || 'Today'}`} />
+                <Chip icon={Smartphone} text="Verified Device" tone="warning" />
               </div>
             </div>
           </div>
           <div className="flex items-center justify-around gap-6 lg:gap-10">
-            <ScoreRing value={72} label="Trust" tone="success" />
-            <ScoreRing value={62} label="Fraud" tone="danger" />
+            <ScoreRing value={customer.trustScore} label="Trust" tone="success" />
+            <ScoreRing value={12} label="Fraud" tone="danger" />
             <ScoreRing value={24} label="Churn" tone="warning" />
           </div>
         </div>
       </GlassCard>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <div className="flex border-b border-border">
+        {["Profile", "Transactions", "Risk History", "Recommendations"].map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab.toLowerCase())}
+            className={cn(
+              "px-4 py-2 border-b-2 font-medium text-sm transition-colors",
+              activeTab === tab.toLowerCase() ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
+            )}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
+
+      <div className={cn("grid grid-cols-1 gap-4 lg:grid-cols-3", activeTab !== "profile" && "hidden")}>
         {/* Timeline */}
         <GlassCard className="lg:col-span-2">
           <div className="mb-4 flex items-center justify-between">
@@ -119,8 +158,29 @@ function Customer360Page() {
         </GlassCard>
       </div>
 
+      {activeTab === "transactions" && (
+        <GlassCard>
+          <h2 className="font-semibold mb-4 text-lg">Transaction History</h2>
+          {transactions.length === 0 ? <p className="text-muted-foreground">No recent transactions flagged.</p> : (
+            <div className="space-y-2">
+              {transactions.map(t => (
+                <div key={t.id} className="p-3 border border-border/50 rounded-xl flex items-center justify-between">
+                  <div>
+                    <div className="font-medium">₹{t.amount}</div>
+                    <div className="text-xs text-muted-foreground">{t.device} · {t.city} · {t.timestamp || "Just now"}</div>
+                  </div>
+                  <div className={cn("text-xs px-2 py-1 rounded-lg", t.status === "blocked" ? "bg-destructive/20 text-destructive" : "bg-success/20 text-success")}>
+                    {t.status}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </GlassCard>
+      )}
+
       {/* Explainable AI */}
-      <GlassCard>
+      <GlassCard className={cn(activeTab !== "recommendations" && activeTab !== "risk history" && "hidden")}>
         <div className="mb-4 flex items-center justify-between">
           <div>
             <div className="text-sm font-semibold">Explainable AI · Decision Breakdown</div>

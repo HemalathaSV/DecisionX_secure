@@ -11,6 +11,8 @@ import {
   ShieldCheck,
   Menu,
   X,
+  Database,
+  Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -20,6 +22,8 @@ const NAV = [
   { to: "/churn-risk", label: "Churn Risk", icon: TrendingDown },
   { to: "/customer-360", label: "Customer 360", icon: UserCircle2 },
   { to: "/reports", label: "Reports", icon: FileBarChart2 },
+  { to: "/dataset-manager", label: "Dataset Manager", icon: Database },
+  { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
 function Brand() {
