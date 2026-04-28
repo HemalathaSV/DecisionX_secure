@@ -9,8 +9,32 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ReportsRouteImport } from './routes/reports'
+import { Route as FraudAlertsRouteImport } from './routes/fraud-alerts'
+import { Route as Customer360RouteImport } from './routes/customer-360'
+import { Route as ChurnRiskRouteImport } from './routes/churn-risk'
 import { Route as IndexRouteImport } from './routes/index'
 
+const ReportsRoute = ReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FraudAlertsRoute = FraudAlertsRouteImport.update({
+  id: '/fraud-alerts',
+  path: '/fraud-alerts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Customer360Route = Customer360RouteImport.update({
+  id: '/customer-360',
+  path: '/customer-360',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChurnRiskRoute = ChurnRiskRouteImport.update({
+  id: '/churn-risk',
+  path: '/churn-risk',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +43,83 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/churn-risk': typeof ChurnRiskRoute
+  '/customer-360': typeof Customer360Route
+  '/fraud-alerts': typeof FraudAlertsRoute
+  '/reports': typeof ReportsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/churn-risk': typeof ChurnRiskRoute
+  '/customer-360': typeof Customer360Route
+  '/fraud-alerts': typeof FraudAlertsRoute
+  '/reports': typeof ReportsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/churn-risk': typeof ChurnRiskRoute
+  '/customer-360': typeof Customer360Route
+  '/fraud-alerts': typeof FraudAlertsRoute
+  '/reports': typeof ReportsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/churn-risk'
+    | '/customer-360'
+    | '/fraud-alerts'
+    | '/reports'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/churn-risk' | '/customer-360' | '/fraud-alerts' | '/reports'
+  id:
+    | '__root__'
+    | '/'
+    | '/churn-risk'
+    | '/customer-360'
+    | '/fraud-alerts'
+    | '/reports'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ChurnRiskRoute: typeof ChurnRiskRoute
+  Customer360Route: typeof Customer360Route
+  FraudAlertsRoute: typeof FraudAlertsRoute
+  ReportsRoute: typeof ReportsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/reports': {
+      id: '/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof ReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fraud-alerts': {
+      id: '/fraud-alerts'
+      path: '/fraud-alerts'
+      fullPath: '/fraud-alerts'
+      preLoaderRoute: typeof FraudAlertsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/customer-360': {
+      id: '/customer-360'
+      path: '/customer-360'
+      fullPath: '/customer-360'
+      preLoaderRoute: typeof Customer360RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/churn-risk': {
+      id: '/churn-risk'
+      path: '/churn-risk'
+      fullPath: '/churn-risk'
+      preLoaderRoute: typeof ChurnRiskRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,6 +132,10 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ChurnRiskRoute: ChurnRiskRoute,
+  Customer360Route: Customer360Route,
+  FraudAlertsRoute: FraudAlertsRoute,
+  ReportsRoute: ReportsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
