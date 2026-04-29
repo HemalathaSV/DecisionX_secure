@@ -13,6 +13,7 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as FraudAlertsRouteImport } from './routes/fraud-alerts'
+import { Route as DecisionSimulatorRouteImport } from './routes/decision-simulator'
 import { Route as DatasetManagerRouteImport } from './routes/dataset-manager'
 import { Route as Customer360RouteImport } from './routes/customer-360'
 import { Route as ChurnRiskRouteImport } from './routes/churn-risk'
@@ -36,6 +37,11 @@ const LoginRoute = LoginRouteImport.update({
 const FraudAlertsRoute = FraudAlertsRouteImport.update({
   id: '/fraud-alerts',
   path: '/fraud-alerts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DecisionSimulatorRoute = DecisionSimulatorRouteImport.update({
+  id: '/decision-simulator',
+  path: '/decision-simulator',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DatasetManagerRoute = DatasetManagerRouteImport.update({
@@ -64,6 +70,7 @@ export interface FileRoutesByFullPath {
   '/churn-risk': typeof ChurnRiskRoute
   '/customer-360': typeof Customer360Route
   '/dataset-manager': typeof DatasetManagerRoute
+  '/decision-simulator': typeof DecisionSimulatorRoute
   '/fraud-alerts': typeof FraudAlertsRoute
   '/login': typeof LoginRoute
   '/reports': typeof ReportsRoute
@@ -74,6 +81,7 @@ export interface FileRoutesByTo {
   '/churn-risk': typeof ChurnRiskRoute
   '/customer-360': typeof Customer360Route
   '/dataset-manager': typeof DatasetManagerRoute
+  '/decision-simulator': typeof DecisionSimulatorRoute
   '/fraud-alerts': typeof FraudAlertsRoute
   '/login': typeof LoginRoute
   '/reports': typeof ReportsRoute
@@ -85,6 +93,7 @@ export interface FileRoutesById {
   '/churn-risk': typeof ChurnRiskRoute
   '/customer-360': typeof Customer360Route
   '/dataset-manager': typeof DatasetManagerRoute
+  '/decision-simulator': typeof DecisionSimulatorRoute
   '/fraud-alerts': typeof FraudAlertsRoute
   '/login': typeof LoginRoute
   '/reports': typeof ReportsRoute
@@ -97,6 +106,7 @@ export interface FileRouteTypes {
     | '/churn-risk'
     | '/customer-360'
     | '/dataset-manager'
+    | '/decision-simulator'
     | '/fraud-alerts'
     | '/login'
     | '/reports'
@@ -107,6 +117,7 @@ export interface FileRouteTypes {
     | '/churn-risk'
     | '/customer-360'
     | '/dataset-manager'
+    | '/decision-simulator'
     | '/fraud-alerts'
     | '/login'
     | '/reports'
@@ -117,6 +128,7 @@ export interface FileRouteTypes {
     | '/churn-risk'
     | '/customer-360'
     | '/dataset-manager'
+    | '/decision-simulator'
     | '/fraud-alerts'
     | '/login'
     | '/reports'
@@ -128,6 +140,7 @@ export interface RootRouteChildren {
   ChurnRiskRoute: typeof ChurnRiskRoute
   Customer360Route: typeof Customer360Route
   DatasetManagerRoute: typeof DatasetManagerRoute
+  DecisionSimulatorRoute: typeof DecisionSimulatorRoute
   FraudAlertsRoute: typeof FraudAlertsRoute
   LoginRoute: typeof LoginRoute
   ReportsRoute: typeof ReportsRoute
@@ -162,6 +175,13 @@ declare module '@tanstack/react-router' {
       path: '/fraud-alerts'
       fullPath: '/fraud-alerts'
       preLoaderRoute: typeof FraudAlertsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/decision-simulator': {
+      id: '/decision-simulator'
+      path: '/decision-simulator'
+      fullPath: '/decision-simulator'
+      preLoaderRoute: typeof DecisionSimulatorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dataset-manager': {
@@ -200,6 +220,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChurnRiskRoute: ChurnRiskRoute,
   Customer360Route: Customer360Route,
   DatasetManagerRoute: DatasetManagerRoute,
+  DecisionSimulatorRoute: DecisionSimulatorRoute,
   FraudAlertsRoute: FraudAlertsRoute,
   LoginRoute: LoginRoute,
   ReportsRoute: ReportsRoute,

@@ -17,6 +17,7 @@ import {
   CreditCard,
   MapPin,
   FileText,
+  Cpu,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
@@ -41,6 +42,7 @@ import {
 
 const NAV = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/decision-simulator", label: "Decision Simulator", icon: Cpu },
   { to: "/fraud-alerts", label: "Fraud Alerts", icon: ShieldAlert },
   { to: "/churn-risk", label: "Churn Risk", icon: TrendingDown },
   { to: "/customer-360", label: "Customer 360", icon: UserCircle2 },
@@ -174,6 +176,7 @@ function TopBar({ onMenu }: { onMenu: () => void }) {
     { id: "p4", title: "Reports", category: "Page", route: "/reports", icon: FileBarChart2 },
     { id: "p5", title: "Dataset Manager", category: "Page", route: "/dataset-manager", icon: Database },
     { id: "p6", title: "Settings", category: "Page", route: "/settings", icon: Settings },
+    { id: "p7", title: "Decision Simulator", category: "Page", route: "/decision-simulator", icon: Cpu },
     // Transactions
     { id: "t1", title: "TXN-998231", category: "Transaction", route: "/customer-360", icon: CreditCard },
     { id: "t2", title: "TXN-112044", category: "Transaction", route: "/customer-360", icon: CreditCard },
