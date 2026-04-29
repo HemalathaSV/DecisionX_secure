@@ -21,13 +21,13 @@ import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { LogOut } from "lucide-react";
 import {
-  CommandDialog,
+  Command,
   CommandEmpty,
   CommandGroup,
-  CommandInput,
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { useNavigate } from "@tanstack/react-router";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -115,32 +115,57 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
 function TopBar({ onMenu }: { onMenu: () => void }) {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCustomer, setSelectedCustomer] = useState<string | null>(null);
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
-        setSearchOpen((open) => !open);
+        setSearchOpen(true);
+      }
+      if (e.key === "Escape") {
+        setSearchOpen(false);
       }
     };
     document.addEventListener("keydown", down);
     return () => document.removeEventListener("keydown", down);
   }, []);
 
-  const handleSelect = (item: string) => {
+  const handleSelect = (type: "customer" | "page" | "alert" | "transaction", name: string, id?: string) => {
     setSearchOpen(false);
     setSearchQuery("");
     
-    // Only open customer modal for names (not for alerts/transactions starting with TXN or High Risk)
-    if (!item.startsWith("TXN-") && !item.includes("High Risk") && !item.includes("Failed Login")) {
-      setSelectedCustomer(item);
+    if (type === "customer") {
+      // In a real app, we would pass the ID. For the demo, navigating cleanly to Customer 360 page.
+      navigate({ to: "/customer-360" });
+      toast.success(`Navigated to profile: ${name}`);
+    } else if (type === "page") {
+      navigate({ to: `/${id}` as any });
     } else {
-      toast.success(`Action: ${item}`);
+      toast.success(`Selected ${type}: ${name}`);
     }
   };
+
+  const clearSearch = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSearchQuery("");
+    setSearchOpen(false);
+  };
+
+  const CUSTOMERS = [
+    { name: "Arjun Reddy", id: "CUS-1201" },
+    { name: "Arjun Bose", id: "CUS-4491" },
+    { name: "Ananya Bose", id: "CUS-8921" },
+    { name: "Priya Desai", id: "CUS-4432" },
+  ];
+
+  // Simple client-side filtering for the mock
+  const filteredCustomers = CUSTOMERS.filter(c => 
+    c.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    c.id.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border/60 bg-background/60 px-4 backdrop-blur-xl md:px-6">
@@ -151,126 +176,97 @@ function TopBar({ onMenu }: { onMenu: () => void }) {
       >
         <Menu className="h-5 w-5" />
       </button>
-      <div className="relative hidden w-full max-w-md md:block">
-        <button
-          onClick={() => setSearchOpen(true)}
-          className="flex h-10 w-full items-center gap-2 rounded-xl border border-border bg-white/[0.03] px-3 text-sm text-muted-foreground hover:bg-white/[0.05] hover:text-foreground transition-colors"
-        >
-          <Search className="h-4 w-4" />
-          <span className="flex-1 text-left">Search by name, ID, or alerts...</span>
-          <kbd className="pointer-events-none hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
-            <span className="text-xs">⌘</span>K
-          </kbd>
-        </button>
-      </div>
-
-      <CommandDialog open={searchOpen} onOpenChange={setSearchOpen}>
-        <CommandInput 
-          placeholder="Type a name to search..." 
-          value={searchQuery}
-          onValueChange={setSearchQuery}
-        />
-        <CommandList>
-          <CommandEmpty>
-            {searchQuery ? (
-              <div 
-                className="flex cursor-pointer items-center justify-center p-4 text-sm text-primary hover:bg-white/[0.02] transition-colors"
-                onClick={() => handleSelect(searchQuery)}
-              >
-                <UserCircle2 className="mr-2 h-4 w-4" />
-                Querying external database for "{searchQuery}"...
-              </div>
-            ) : (
-              "No results found."
-            )}
-          </CommandEmpty>
-          
-          {searchQuery.trim().length > 0 && (
-            <CommandGroup heading="Global Directory">
-              <CommandItem value={searchQuery} onSelect={() => handleSelect(searchQuery)}>
-                <UserCircle2 className="mr-2 h-4 w-4 text-primary" />
-                <span><span className="font-semibold text-foreground">{searchQuery}</span> <span className="text-muted-foreground">(ID: CUS-{Math.floor(Math.random() * 9000) + 1000})</span></span>
-              </CommandItem>
-            </CommandGroup>
+      
+      <div className="relative hidden w-full max-w-lg md:block">
+        <div 
+          className={cn(
+            "relative flex h-10 w-full items-center gap-2 rounded-xl border bg-white/[0.03] px-3 transition-colors",
+            searchOpen ? "border-primary/50 ring-2 ring-primary/20" : "border-border hover:bg-white/[0.05]"
           )}
-
-          <CommandGroup heading="Customers">
-            <CommandItem value="Rahul Sharma" onSelect={() => handleSelect("Rahul Sharma")}>
-              <UserCircle2 className="mr-2 h-4 w-4" />
-              <span>Rahul Sharma (ID: CUS-8921)</span>
-            </CommandItem>
-            <CommandItem value="Priya Desai" onSelect={() => handleSelect("Priya Desai")}>
-              <UserCircle2 className="mr-2 h-4 w-4" />
-              <span>Priya Desai (ID: CUS-4432)</span>
-            </CommandItem>
-          </CommandGroup>
-          <CommandGroup heading="Recent Alerts">
-            <CommandItem value="High Risk Transfer" onSelect={() => handleSelect("High Risk Transfer")}>
-              <ShieldAlert className="mr-2 h-4 w-4 text-destructive" />
-              <span>High Risk Transfer - ₹95,000</span>
-            </CommandItem>
-            <CommandItem value="Failed Login Attempts" onSelect={() => handleSelect("Failed Login Attempts")}>
-              <AlertTriangle className="mr-2 h-4 w-4 text-warning" />
-              <span>Multiple failed logins (192.168.1.104)</span>
-            </CommandItem>
-          </CommandGroup>
-          <CommandGroup heading="Transactions">
-            <CommandItem value="TXN-998231" onSelect={() => handleSelect("TXN-998231")}>
-              <CreditCard className="mr-2 h-4 w-4" />
-              <span>TXN-998231 - ₹4,500 to Amazon</span>
-            </CommandItem>
-          </CommandGroup>
-        </CommandList>
-      </CommandDialog>
-
-      {selectedCustomer && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm animate-in fade-in" onClick={() => setSelectedCustomer(null)} />
-          <div className="relative w-full max-w-md glass-strong rounded-3xl p-6 shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-2">
-            <button
-              onClick={() => setSelectedCustomer(null)}
-              className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-lg bg-white/5 hover:bg-white/10"
-            >
-              <X className="h-4 w-4" />
+        >
+          <Search className="h-4 w-4 text-muted-foreground shrink-0" />
+          <input
+            type="text"
+            className="flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+            placeholder="Search customers, alerts, transactions..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onFocus={() => setSearchOpen(true)}
+          />
+          {searchQuery ? (
+            <button onClick={clearSearch} className="shrink-0 p-1 rounded-md hover:bg-white/10 text-muted-foreground hover:text-foreground">
+              <X className="h-3 w-3" />
             </button>
-            <div className="flex flex-col items-center mb-6">
-              <div className="flex h-20 w-20 items-center justify-center rounded-2xl gradient-brand text-3xl font-bold text-primary-foreground shadow-glow mb-4">
-                {selectedCustomer.substring(0, 2).toUpperCase()}
-              </div>
-              <h2 className="text-2xl font-bold text-foreground">{selectedCustomer}</h2>
-              <div className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
-                Username: @{selectedCustomer.toLowerCase().replace(/[^a-z0-9]/g, '_')}
-              </div>
-            </div>
-            
-            <div className="grid gap-3">
-              <div className="flex items-center justify-between rounded-xl bg-white/[0.03] p-3">
-                <span className="text-sm text-muted-foreground">Status</span>
-                <span className="inline-flex items-center gap-1.5 text-sm font-medium text-success">
-                  <span className="h-2 w-2 rounded-full bg-success animate-pulse" /> Verified
-                </span>
-              </div>
-              <div className="flex items-center justify-between rounded-xl bg-white/[0.03] p-3">
-                <span className="text-sm text-muted-foreground">Trust Score</span>
-                <span className="text-sm font-medium text-foreground">92/100 (Low Risk)</span>
-              </div>
-              <div className="flex items-center justify-between rounded-xl bg-white/[0.03] p-3">
-                <span className="text-sm text-muted-foreground">Total Value</span>
-                <span className="text-sm font-medium text-foreground">₹4.2 Lakhs</span>
-              </div>
-            </div>
-
-            <div className="mt-6 flex gap-3">
-              <button className="flex-1 rounded-xl bg-white/5 py-2.5 text-sm font-medium hover:bg-white/10 transition-colors" onClick={() => {toast.info("Report downloaded"); setSelectedCustomer(null);}}>
-                Export Report
-              </button>
-              <button className="flex-1 rounded-xl gradient-brand py-2.5 text-sm font-medium text-primary-foreground shadow-glow hover:opacity-90 transition-opacity" onClick={() => {toast.success("Profile reviewed"); setSelectedCustomer(null);}}>
-                View Full Profile
-              </button>
-            </div>
-          </div>
+          ) : (
+            <kbd className="pointer-events-none hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex text-muted-foreground">
+              <span className="text-xs">⌘</span>K
+            </kbd>
+          )}
         </div>
-      )}
+
+        {searchOpen && (
+          <>
+            <div className="fixed inset-0 z-40" onClick={() => setSearchOpen(false)} />
+            <div className="absolute top-full left-0 right-0 z-50 mt-2 overflow-hidden rounded-xl border border-border/50 glass-strong shadow-2xl animate-in fade-in slide-in-from-top-2">
+              <Command className="bg-transparent" shouldFilter={false}>
+                <CommandList className="max-h-[400px] overflow-y-auto p-1 scrollbar-thin">
+                  {searchQuery && filteredCustomers.length === 0 && (
+                    <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">
+                      No results found for "{searchQuery}"
+                    </CommandEmpty>
+                  )}
+                  
+                  {(!searchQuery || filteredCustomers.length > 0) && (
+                    <CommandGroup heading="Customers">
+                      {(searchQuery ? filteredCustomers : CUSTOMERS.slice(0, 2)).map((c) => (
+                        <CommandItem key={c.id} onSelect={() => handleSelect("customer", c.name, c.id)} className="cursor-pointer">
+                          <UserCircle2 className="mr-2 h-4 w-4 text-primary" />
+                          <span>{c.name} <span className="text-muted-foreground ml-1">({c.id})</span></span>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  )}
+
+                  {(!searchQuery || "high risk transfer".includes(searchQuery.toLowerCase())) && (
+                    <CommandGroup heading="Alerts">
+                      <CommandItem onSelect={() => handleSelect("alert", "High Risk Transfer")} className="cursor-pointer">
+                        <ShieldAlert className="mr-2 h-4 w-4 text-destructive" />
+                        <span>High Risk Transfer - <span className="font-semibold">₹95,000</span></span>
+                      </CommandItem>
+                    </CommandGroup>
+                  )}
+
+                  {(!searchQuery || "txn-99231".includes(searchQuery.toLowerCase())) && (
+                    <CommandGroup heading="Transactions">
+                      <CommandItem onSelect={() => handleSelect("transaction", "TXN-99231")} className="cursor-pointer">
+                        <CreditCard className="mr-2 h-4 w-4 text-accent" />
+                        <span>TXN-99231 - <span className="font-semibold">₹4,500</span> to Amazon</span>
+                      </CommandItem>
+                    </CommandGroup>
+                  )}
+
+                  {(!searchQuery || "customer 360".includes(searchQuery.toLowerCase()) || "fraud alerts".includes(searchQuery.toLowerCase())) && (
+                    <CommandGroup heading="Pages">
+                      {(!searchQuery || "customer 360".includes(searchQuery.toLowerCase())) && (
+                        <CommandItem onSelect={() => handleSelect("page", "Customer 360", "customer-360")} className="cursor-pointer">
+                          <LayoutDashboard className="mr-2 h-4 w-4 text-muted-foreground" />
+                          <span>Customer 360</span>
+                        </CommandItem>
+                      )}
+                      {(!searchQuery || "fraud alerts".includes(searchQuery.toLowerCase())) && (
+                        <CommandItem onSelect={() => handleSelect("page", "Fraud Alerts", "fraud-alerts")} className="cursor-pointer">
+                          <ShieldCheck className="mr-2 h-4 w-4 text-muted-foreground" />
+                          <span>Fraud Alerts</span>
+                        </CommandItem>
+                      )}
+                    </CommandGroup>
+                  )}
+                </CommandList>
+              </Command>
+            </div>
+          </>
+        )}
+      </div>
       <div className="ml-auto flex items-center gap-3">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
