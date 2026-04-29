@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ReportsRouteImport } from './routes/reports'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as FraudAlertsRouteImport } from './routes/fraud-alerts'
 import { Route as DatasetManagerRouteImport } from './routes/dataset-manager'
 import { Route as Customer360RouteImport } from './routes/customer-360'
@@ -25,6 +26,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const ReportsRoute = ReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FraudAlertsRoute = FraudAlertsRouteImport.update({
@@ -59,6 +65,7 @@ export interface FileRoutesByFullPath {
   '/customer-360': typeof Customer360Route
   '/dataset-manager': typeof DatasetManagerRoute
   '/fraud-alerts': typeof FraudAlertsRoute
+  '/login': typeof LoginRoute
   '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
 }
@@ -68,6 +75,7 @@ export interface FileRoutesByTo {
   '/customer-360': typeof Customer360Route
   '/dataset-manager': typeof DatasetManagerRoute
   '/fraud-alerts': typeof FraudAlertsRoute
+  '/login': typeof LoginRoute
   '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
 }
@@ -78,6 +86,7 @@ export interface FileRoutesById {
   '/customer-360': typeof Customer360Route
   '/dataset-manager': typeof DatasetManagerRoute
   '/fraud-alerts': typeof FraudAlertsRoute
+  '/login': typeof LoginRoute
   '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
 }
@@ -89,6 +98,7 @@ export interface FileRouteTypes {
     | '/customer-360'
     | '/dataset-manager'
     | '/fraud-alerts'
+    | '/login'
     | '/reports'
     | '/settings'
   fileRoutesByTo: FileRoutesByTo
@@ -98,6 +108,7 @@ export interface FileRouteTypes {
     | '/customer-360'
     | '/dataset-manager'
     | '/fraud-alerts'
+    | '/login'
     | '/reports'
     | '/settings'
   id:
@@ -107,6 +118,7 @@ export interface FileRouteTypes {
     | '/customer-360'
     | '/dataset-manager'
     | '/fraud-alerts'
+    | '/login'
     | '/reports'
     | '/settings'
   fileRoutesById: FileRoutesById
@@ -117,6 +129,7 @@ export interface RootRouteChildren {
   Customer360Route: typeof Customer360Route
   DatasetManagerRoute: typeof DatasetManagerRoute
   FraudAlertsRoute: typeof FraudAlertsRoute
+  LoginRoute: typeof LoginRoute
   ReportsRoute: typeof ReportsRoute
   SettingsRoute: typeof SettingsRoute
 }
@@ -135,6 +148,13 @@ declare module '@tanstack/react-router' {
       path: '/reports'
       fullPath: '/reports'
       preLoaderRoute: typeof ReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/fraud-alerts': {
@@ -181,6 +201,7 @@ const rootRouteChildren: RootRouteChildren = {
   Customer360Route: Customer360Route,
   DatasetManagerRoute: DatasetManagerRoute,
   FraudAlertsRoute: FraudAlertsRoute,
+  LoginRoute: LoginRoute,
   ReportsRoute: ReportsRoute,
   SettingsRoute: SettingsRoute,
 }

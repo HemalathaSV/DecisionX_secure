@@ -66,11 +66,34 @@ function RootShell({ children }: { children: React.ReactNode }) {
   );
 }
 
+import { AuthProvider, useAuth } from "@/lib/auth-context";
+import { useRouterState, Navigate } from "@tanstack/react-router";
+
 function RootComponent() {
+  return (
+    <AuthProvider>
+      <AuthWrapper />
+      <Toaster position="top-right" theme="dark" />
+    </AuthProvider>
+  );
+}
+
+function AuthWrapper() {
+  const { isAuthenticated } = useAuth();
+  const { location } = useRouterState();
+  const isLoginPage = location.pathname === "/login";
+
+  if (!isAuthenticated && !isLoginPage) {
+    return <Navigate to="/login" />;
+  }
+
+  if (isLoginPage) {
+    return <Outlet />;
+  }
+
   return (
     <AppShell>
       <Outlet />
-      <Toaster position="top-right" theme="dark" />
     </AppShell>
   );
 }

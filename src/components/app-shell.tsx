@@ -15,6 +15,17 @@ import {
   Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/auth-context";
+import { toast } from "sonner";
+import { LogOut } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const NAV = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -93,6 +104,23 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 function TopBar({ onMenu }: { onMenu: () => void }) {
+  const { user, logout } = useAuth();
+  
+  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      const query = e.currentTarget.value;
+      if (query.trim()) {
+        toast.success(`Search triggered for "${query}"`);
+      }
+    }
+  };
+
+  const handleNotificationClick = () => {
+    toast("No new notifications", {
+      description: "System is currently safe and secure.",
+    });
+  };
+
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border/60 bg-background/60 px-4 backdrop-blur-xl md:px-6">
       <button
@@ -107,23 +135,50 @@ function TopBar({ onMenu }: { onMenu: () => void }) {
         <input
           type="search"
           placeholder="Search customers, transactions, alerts…"
+          onKeyDown={handleSearch}
           className="h-10 w-full rounded-xl border border-border bg-white/[0.03] pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/30"
         />
       </div>
       <div className="ml-auto flex items-center gap-3">
-        <button className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-white/[0.03] text-muted-foreground hover:text-foreground">
+        <button 
+          onClick={handleNotificationClick}
+          className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-white/[0.03] text-muted-foreground hover:text-foreground transition-colors"
+        >
           <Bell className="h-4 w-4" />
-          <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-destructive ring-2 ring-background" />
+          <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-destructive ring-2 ring-background animate-pulse" />
         </button>
-        <div className="flex items-center gap-3 rounded-xl border border-border bg-white/[0.03] py-1.5 pl-1.5 pr-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-brand text-xs font-semibold text-primary-foreground">
-            AD
-          </div>
-          <div className="hidden text-left leading-tight sm:block">
-            <div className="text-sm font-medium">Admin Das</div>
-            <div className="text-[11px] text-muted-foreground">Risk Ops · SecureAI</div>
-          </div>
-        </div>
+        
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex items-center gap-3 rounded-xl border border-border bg-white/[0.03] py-1.5 pl-1.5 pr-3 hover:bg-white/[0.05] transition-colors focus:outline-none">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-brand text-xs font-semibold text-primary-foreground">
+                {user?.username ? user.username.substring(0, 2).toUpperCase() : 'AD'}
+              </div>
+              <div className="hidden text-left leading-tight sm:block">
+                <div className="text-sm font-medium">{user?.username || 'Admin Das'}</div>
+                <div className="text-[11px] text-muted-foreground">Risk Ops · SecureAI</div>
+              </div>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56 glass border-border/50">
+            <DropdownMenuLabel className="font-normal">
+              <div className="flex flex-col space-y-1">
+                <p className="text-sm font-medium leading-none">{user?.username || 'Admin Das'}</p>
+                <p className="text-xs leading-none text-muted-foreground">
+                  admin@secureai.dev
+                </p>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator className="bg-border/50" />
+            <DropdownMenuItem 
+              onClick={logout}
+              className="text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer"
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Log out</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );
