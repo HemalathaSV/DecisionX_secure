@@ -3,30 +3,52 @@ import { useState, useEffect } from "react";
 import { Save, Sliders, Bell } from "lucide-react";
 import { toast } from "sonner";
 import { GlassCard } from "@/components/primitives";
+import { useTheme } from "@/lib/theme-provider";
 
 export const Route = createFileRoute("/settings")({
   component: SettingsPage,
 });
 
 function SettingsPage() {
+  const { theme, setTheme } = useTheme();
+  
   const [settings, setSettings] = useState({
-    theme: "dark",
+    theme: theme,
     notifications: true,
     riskThreshold: 80,
   });
 
   useEffect(() => {
+    // Sync local state if global theme changes
+    setSettings(s => ({ ...s, theme }));
+  }, [theme]);
+
+  useEffect(() => {
     const saved = localStorage.getItem("trustguard_settings");
     if (saved) {
       try {
-        setSettings(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        setSettings(s => ({ ...s, ...parsed, theme: theme }));
       } catch (e) {}
     }
-  }, []);
+  }, [theme]);
+
+  const handleToggleTheme = () => {
+    const newTheme = settings.theme === "dark" ? "light" : "dark";
+    setSettings(s => ({ ...s, theme: newTheme }));
+    // Live switching requirement: update immediately after toggle
+    setTheme(newTheme);
+  };
 
   const handleSave = () => {
-    localStorage.setItem("trustguard_settings", JSON.stringify(settings));
-    toast.success("Settings saved successfully!");
+    // Persist other settings
+    localStorage.setItem("trustguard_settings", JSON.stringify({
+      notifications: settings.notifications,
+      riskThreshold: settings.riskThreshold
+    }));
+    // Theme is already saved by ThemeProvider, but we can re-affirm it
+    setTheme(settings.theme);
+    toast.success("Settings Saved Successfully");
   };
 
   return (
@@ -48,7 +70,7 @@ function SettingsPage() {
                 <div className="text-xs text-muted-foreground">Enable dark mode for the dashboard</div>
               </div>
               <button
-                onClick={() => setSettings(s => ({ ...s, theme: s.theme === "dark" ? "light" : "dark" }))}
+                onClick={handleToggleTheme}
                 className={`w-12 h-6 rounded-full transition-colors relative flex items-center ${settings.theme === "dark" ? "bg-primary" : "bg-muted"}`}
               >
                 <div className={`w-4 h-4 bg-white rounded-full transition-transform absolute ${settings.theme === "dark" ? "translate-x-7" : "translate-x-1"}`} />
@@ -87,7 +109,7 @@ function SettingsPage() {
                 max="99" 
                 value={settings.riskThreshold}
                 onChange={(e) => setSettings(s => ({ ...s, riskThreshold: parseInt(e.target.value) }))}
-                className="w-full accent-primary h-2 bg-white/10 rounded-lg appearance-none cursor-pointer"
+                className="w-full accent-primary h-2 bg-black/10 dark:bg-white/10 rounded-lg appearance-none cursor-pointer"
               />
             </div>
           </div>

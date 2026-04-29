@@ -67,18 +67,32 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 import { AuthProvider, useAuth } from "@/lib/auth-context";
+import { ThemeProvider } from "@/lib/theme-provider";
 import { useRouterState, Navigate } from "@tanstack/react-router";
 
 function RootComponent() {
   return (
     <AuthProvider>
-      <AuthWrapper />
-      <Toaster position="top-right" theme="dark" />
+      <ThemeProvider>
+        <AuthWrapper>
+          <AppShell>
+            <Outlet />
+          </AppShell>
+        </AuthWrapper>
+        <ThemeAwareToaster />
+      </ThemeProvider>
     </AuthProvider>
   );
 }
 
-function AuthWrapper() {
+import { useTheme } from "@/lib/theme-provider";
+
+function ThemeAwareToaster() {
+  const { theme } = useTheme();
+  return <Toaster position="top-right" theme={theme === "light" ? "light" : "dark"} />;
+}
+
+function AuthWrapper({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
   const { location } = useRouterState();
   const isLoginPage = location.pathname === "/login";
