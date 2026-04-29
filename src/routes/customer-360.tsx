@@ -45,9 +45,32 @@ function Customer360Page() {
       setLoading(true);
       const custs = await safeGetDocs("customers");
       const frauds = await safeGetDocs("fraud_alerts");
-      if (custs.length > 0) {
-        setCustomer(custs[0]);
-        setTransactions(frauds.filter((f: any) => f.customer === custs[0].name));
+      
+      const targetId = localStorage.getItem("selected_customer_id");
+      const targetName = localStorage.getItem("selected_customer_name");
+      
+      let matchedCust = custs.find((c: any) => c.id === targetId);
+      
+      // Fallback: If search triggered a custom customer not in the randomly generated DB
+      if (!matchedCust && targetId && targetName) {
+        matchedCust = {
+          ...custs[0], 
+          id: targetId, 
+          name: targetName,
+          tier: "Premium",
+          city: "New Delhi",
+          trustScore: 92
+        };
+      }
+      
+      // Final fallback to the first one in the DB
+      if (!matchedCust && custs.length > 0) {
+        matchedCust = custs[0];
+      }
+
+      if (matchedCust) {
+        setCustomer(matchedCust);
+        setTransactions(frauds.filter((f: any) => f.customer === matchedCust.name).slice(0, 5));
       }
       setLoading(false);
     };

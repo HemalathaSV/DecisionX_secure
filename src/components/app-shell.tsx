@@ -1,4 +1,4 @@
-import { ReactNode, useState, useEffect } from "react";
+import { ReactNode, useState, useEffect, useMemo } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
@@ -15,6 +15,8 @@ import {
   Settings,
   AlertTriangle,
   CreditCard,
+  MapPin,
+  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
@@ -113,6 +115,16 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   );
 }
 
+type SearchCategory = "Customer" | "Alert" | "Report" | "City" | "Page" | "Transaction" | "Dataset";
+
+type SearchItem = {
+  id: string;
+  title: string;
+  category: SearchCategory;
+  route: string;
+  icon: any;
+};
+
 function TopBar({ onMenu }: { onMenu: () => void }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -133,18 +145,71 @@ function TopBar({ onMenu }: { onMenu: () => void }) {
     return () => document.removeEventListener("keydown", down);
   }, []);
 
-  const handleSelect = (type: "customer" | "page" | "alert" | "transaction", name: string, id?: string) => {
+  const GLOBAL_SEARCH_DATA: SearchItem[] = [
+    // Customers
+    { id: "cust_204", title: "Neha Gupta", category: "Customer", route: "/customer-360", icon: UserCircle2 },
+    { id: "cust_206", title: "Neha Sharma", category: "Customer", route: "/customer-360", icon: UserCircle2 },
+    { id: "cust_207", title: "Nehal Reddy", category: "Customer", route: "/customer-360", icon: UserCircle2 },
+    { id: "cust_208", title: "Neil Verma", category: "Customer", route: "/customer-360", icon: UserCircle2 },
+    { id: "cust_1201", title: "Arjun Reddy", category: "Customer", route: "/customer-360", icon: UserCircle2 },
+    { id: "cust_4491", title: "Arjun Bose", category: "Customer", route: "/customer-360", icon: UserCircle2 },
+    { id: "cust_205", title: "Priya Gupta", category: "Customer", route: "/customer-360", icon: UserCircle2 },
+    { id: "cust_4432", title: "Priya Desai", category: "Customer", route: "/customer-360", icon: UserCircle2 },
+    // Alerts
+    { id: "a1", title: "Neha Fraud Alert", category: "Alert", route: "/fraud-alerts", icon: ShieldAlert },
+    { id: "a2", title: "High Risk Transfer", category: "Alert", route: "/fraud-alerts", icon: AlertTriangle },
+    { id: "a3", title: "Suspicious Login", category: "Alert", route: "/fraud-alerts", icon: ShieldAlert },
+    // Reports
+    { id: "r1", title: "Neha Monthly Report", category: "Report", route: "/reports", icon: FileText },
+    { id: "r2", title: "Q3 Financials", category: "Report", route: "/reports", icon: FileText },
+    { id: "r3", title: "Annual Risk Summary", category: "Report", route: "/reports", icon: FileText },
+    // Cities
+    { id: "l1", title: "New Delhi", category: "City", route: "/customer-360", icon: MapPin },
+    { id: "l2", title: "Mumbai", category: "City", route: "/customer-360", icon: MapPin },
+    { id: "l3", title: "Bangalore", category: "City", route: "/customer-360", icon: MapPin },
+    // Pages
+    { id: "p1", title: "Customer 360", category: "Page", route: "/customer-360", icon: LayoutDashboard },
+    { id: "p2", title: "Fraud Alerts", category: "Page", route: "/fraud-alerts", icon: ShieldCheck },
+    { id: "p3", title: "Churn Risk", category: "Page", route: "/churn-risk", icon: TrendingDown },
+    { id: "p4", title: "Reports", category: "Page", route: "/reports", icon: FileBarChart2 },
+    { id: "p5", title: "Dataset Manager", category: "Page", route: "/dataset-manager", icon: Database },
+    { id: "p6", title: "Settings", category: "Page", route: "/settings", icon: Settings },
+    // Transactions
+    { id: "t1", title: "TXN-998231", category: "Transaction", route: "/customer-360", icon: CreditCard },
+    { id: "t2", title: "TXN-112044", category: "Transaction", route: "/customer-360", icon: CreditCard },
+    // Datasets
+    { id: "d1", title: "Transaction Logs 2026", category: "Dataset", route: "/dataset-manager", icon: Database },
+    { id: "d2", title: "Customer Master Data", category: "Dataset", route: "/dataset-manager", icon: Database },
+  ];
+
+  const filteredResults = useMemo(() => {
+    if (!searchQuery) return [];
+    const query = searchQuery.toLowerCase();
+    
+    // Filter and sort A-Z
+    return GLOBAL_SEARCH_DATA.filter(item => 
+      item.title.toLowerCase().includes(query) || 
+      item.category.toLowerCase().includes(query)
+    ).sort((a, b) => a.title.localeCompare(b.title));
+  }, [searchQuery]);
+
+  const handleSelect = (item: SearchItem) => {
     setSearchOpen(false);
     setSearchQuery("");
     
-    if (type === "customer") {
-      // In a real app, we would pass the ID. For the demo, navigating cleanly to Customer 360 page.
-      navigate({ to: "/customer-360" });
-      toast.success(`Navigated to profile: ${name}`);
-    } else if (type === "page") {
-      navigate({ to: `/${id}` as any });
-    } else {
-      toast.success(`Selected ${type}: ${name}`);
+    if (item.category === "Customer") {
+      // Store the specific customer ID so Customer 360 page knows exactly who to load
+      localStorage.setItem("selected_customer_id", item.id);
+      localStorage.setItem("selected_customer_name", item.title);
+    }
+    
+    navigate({ to: item.route as any });
+    toast.success(`Navigated to ${item.title}`);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && filteredResults.length > 0) {
+      handleSelect(filteredResults[0]);
     }
   };
 
@@ -153,19 +218,6 @@ function TopBar({ onMenu }: { onMenu: () => void }) {
     setSearchQuery("");
     setSearchOpen(false);
   };
-
-  const CUSTOMERS = [
-    { name: "Arjun Reddy", id: "CUS-1201" },
-    { name: "Arjun Bose", id: "CUS-4491" },
-    { name: "Ananya Bose", id: "CUS-8921" },
-    { name: "Priya Desai", id: "CUS-4432" },
-  ];
-
-  // Simple client-side filtering for the mock
-  const filteredCustomers = CUSTOMERS.filter(c => 
-    c.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    c.id.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border/60 bg-background/60 px-4 backdrop-blur-xl md:px-6">
@@ -177,7 +229,7 @@ function TopBar({ onMenu }: { onMenu: () => void }) {
         <Menu className="h-5 w-5" />
       </button>
       
-      <div className="relative hidden w-full max-w-lg md:block">
+      <div className="relative hidden w-full max-w-2xl md:block">
         <div 
           className={cn(
             "relative flex h-10 w-full items-center gap-2 rounded-xl border bg-white/[0.03] px-3 transition-colors",
@@ -188,10 +240,14 @@ function TopBar({ onMenu }: { onMenu: () => void }) {
           <input
             type="text"
             className="flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
-            placeholder="Search customers, alerts, transactions..."
+            placeholder="Search customers, alerts, transactions, reports, datasets..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setSearchOpen(true);
+            }}
             onFocus={() => setSearchOpen(true)}
+            onKeyDown={handleKeyDown}
           />
           {searchQuery ? (
             <button onClick={clearSearch} className="shrink-0 p-1 rounded-md hover:bg-white/10 text-muted-foreground hover:text-foreground">
@@ -204,61 +260,38 @@ function TopBar({ onMenu }: { onMenu: () => void }) {
           )}
         </div>
 
-        {searchOpen && (
+        {searchOpen && searchQuery && (
           <>
             <div className="fixed inset-0 z-40" onClick={() => setSearchOpen(false)} />
-            <div className="absolute top-full left-0 right-0 z-50 mt-2 overflow-hidden rounded-xl border border-border/50 glass-strong shadow-2xl animate-in fade-in slide-in-from-top-2">
+            <div className="absolute top-full left-0 right-0 z-50 mt-2 overflow-hidden rounded-xl border border-border bg-card shadow-[0_10px_40px_-10px_rgba(0,0,0,0.8)] animate-in fade-in slide-in-from-top-2 p-1">
               <Command className="bg-transparent" shouldFilter={false}>
                 <CommandList className="max-h-[400px] overflow-y-auto p-1 scrollbar-thin">
-                  {searchQuery && filteredCustomers.length === 0 && (
-                    <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">
+                  {filteredResults.length === 0 ? (
+                    <div className="py-6 text-center text-sm text-muted-foreground">
                       No results found for "{searchQuery}"
-                    </CommandEmpty>
-                  )}
-                  
-                  {(!searchQuery || filteredCustomers.length > 0) && (
-                    <CommandGroup heading="Customers">
-                      {(searchQuery ? filteredCustomers : CUSTOMERS.slice(0, 2)).map((c) => (
-                        <CommandItem key={c.id} onSelect={() => handleSelect("customer", c.name, c.id)} className="cursor-pointer">
-                          <UserCircle2 className="mr-2 h-4 w-4 text-primary" />
-                          <span>{c.name} <span className="text-muted-foreground ml-1">({c.id})</span></span>
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  )}
-
-                  {(!searchQuery || "high risk transfer".includes(searchQuery.toLowerCase())) && (
-                    <CommandGroup heading="Alerts">
-                      <CommandItem onSelect={() => handleSelect("alert", "High Risk Transfer")} className="cursor-pointer">
-                        <ShieldAlert className="mr-2 h-4 w-4 text-destructive" />
-                        <span>High Risk Transfer - <span className="font-semibold">₹95,000</span></span>
-                      </CommandItem>
-                    </CommandGroup>
-                  )}
-
-                  {(!searchQuery || "txn-99231".includes(searchQuery.toLowerCase())) && (
-                    <CommandGroup heading="Transactions">
-                      <CommandItem onSelect={() => handleSelect("transaction", "TXN-99231")} className="cursor-pointer">
-                        <CreditCard className="mr-2 h-4 w-4 text-accent" />
-                        <span>TXN-99231 - <span className="font-semibold">₹4,500</span> to Amazon</span>
-                      </CommandItem>
-                    </CommandGroup>
-                  )}
-
-                  {(!searchQuery || "customer 360".includes(searchQuery.toLowerCase()) || "fraud alerts".includes(searchQuery.toLowerCase())) && (
-                    <CommandGroup heading="Pages">
-                      {(!searchQuery || "customer 360".includes(searchQuery.toLowerCase())) && (
-                        <CommandItem onSelect={() => handleSelect("page", "Customer 360", "customer-360")} className="cursor-pointer">
-                          <LayoutDashboard className="mr-2 h-4 w-4 text-muted-foreground" />
-                          <span>Customer 360</span>
-                        </CommandItem>
-                      )}
-                      {(!searchQuery || "fraud alerts".includes(searchQuery.toLowerCase())) && (
-                        <CommandItem onSelect={() => handleSelect("page", "Fraud Alerts", "fraud-alerts")} className="cursor-pointer">
-                          <ShieldCheck className="mr-2 h-4 w-4 text-muted-foreground" />
-                          <span>Fraud Alerts</span>
-                        </CommandItem>
-                      )}
+                    </div>
+                  ) : (
+                    <CommandGroup heading="Global Results (A-Z)">
+                      {filteredResults.map((item) => {
+                        const Icon = item.icon;
+                        return (
+                          <CommandItem 
+                            key={item.id} 
+                            onSelect={() => handleSelect(item)} 
+                            className="cursor-pointer flex items-center justify-between rounded-lg py-2.5 my-0.5 hover:bg-white/[0.06] data-[selected=true]:bg-white/[0.06]"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/5">
+                                <Icon className="h-4 w-4 text-primary" />
+                              </div>
+                              <span className="font-medium text-foreground">{item.title}</span>
+                            </div>
+                            <span className="shrink-0 rounded-full bg-white/5 px-2.5 py-0.5 text-xs font-medium text-muted-foreground border border-white/5">
+                              {item.category}
+                            </span>
+                          </CommandItem>
+                        );
+                      })}
                     </CommandGroup>
                   )}
                 </CommandList>
