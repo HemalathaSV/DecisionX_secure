@@ -342,10 +342,11 @@ This protects the account without frustrating the user.
 ```bash
 npm install
 npm run dev
-
+```
 
 # 🚀 Live Demo Credentials
 
 ```text
 Username: Anjum
 Password: shariff
+```
