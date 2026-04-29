@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { AskMFAModal } from "@/components/ask-mfa-modal";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -319,6 +320,8 @@ function LiveAlerts() {
 }
 
 function SimulationModal({ onClose }: { onClose: () => void }) {
+  const [mfaOpen, setMfaOpen] = useState(false);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
@@ -354,10 +357,26 @@ function SimulationModal({ onClose }: { onClose: () => void }) {
 
         <div className="mt-5 grid grid-cols-3 gap-2">
           <Button variant="outline" onClick={() => { toast.success("Transaction allowed"); onClose(); }}>Allow</Button>
-          <Button variant="outline" onClick={() => { toast.message("MFA challenge sent"); onClose(); }}>Ask MFA</Button>
+          <Button variant="outline" onClick={() => setMfaOpen(true)}>Ask MFA</Button>
           <Button className="gradient-brand" onClick={() => { toast.error("Transaction blocked"); onClose(); }}>Block</Button>
         </div>
       </div>
+      {mfaOpen && (
+        <AskMFAModal
+          customerName="Rahul Sharma"
+          onClose={() => setMfaOpen(false)}
+          onSuccess={() => {
+            // Update decision to allowed
+            toast.success("Transaction allowed");
+            onClose();
+          }}
+          onBlocked={() => {
+            // Update decision to blocked
+            toast.error("Transaction blocked");
+            onClose();
+          }}
+        />
+      )}
     </div>
   );
 }

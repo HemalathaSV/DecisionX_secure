@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { safeGetDocs } from "@/lib/db-service";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { AskMFAModal } from "@/components/ask-mfa-modal";
 
 export const Route = createFileRoute("/customer-360")({
   head: () => ({
@@ -39,6 +40,7 @@ function Customer360Page() {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("profile");
+  const [mfaOpen, setMfaOpen] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -171,7 +173,7 @@ function Customer360Page() {
           <div className="mt-1 text-xs text-muted-foreground">Confidence 87% · Based on 4 signals</div>
           <div className="mt-5 grid grid-cols-2 gap-2">
             <Button variant="outline" onClick={() => toast.success("Allowed")}>Allow</Button>
-            <Button className="gradient-brand" onClick={() => toast.message("MFA challenge sent")}>Ask MFA</Button>
+            <Button className="gradient-brand" onClick={() => setMfaOpen(true)}>Ask MFA</Button>
             <Button variant="outline" onClick={() => toast.error("Blocked")}>Block</Button>
             <Button variant="outline" onClick={() => toast.success("Cashback offered")}>Offer Cashback</Button>
           </div>
@@ -231,6 +233,19 @@ function Customer360Page() {
           ))}
         </div>
       </GlassCard>
+
+      {mfaOpen && (
+        <AskMFAModal
+          customerName={customer.name}
+          onClose={() => setMfaOpen(false)}
+          onSuccess={() => {
+            toast.success("Transaction allowed");
+          }}
+          onBlocked={() => {
+            toast.error("Transaction blocked");
+          }}
+        />
+      )}
     </div>
   );
 }

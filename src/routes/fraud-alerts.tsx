@@ -6,6 +6,7 @@ import { formatINRFull, type Severity } from "@/lib/mock-data";
 import { safeGetDocs, safeSetDoc } from "@/lib/db-service";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { AskMFAModal } from "@/components/ask-mfa-modal";
 
 export const Route = createFileRoute("/fraud-alerts")({
   head: () => ({
@@ -26,6 +27,7 @@ function FraudAlertsPage() {
   const [query, setQuery] = useState("");
   const [alerts, setAlerts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [mfaAlert, setMfaAlert] = useState<{ id: string; customer: string } | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -152,7 +154,7 @@ function FraudAlertsPage() {
                   <td className="px-5 py-4 min-w-[200px]">
                     <div className="flex gap-1.5">
                       <button onClick={() => handleAction(a.id, "Allow", "safe")} className="p-1.5 rounded-md hover:bg-success/20 text-success transition-colors" title="Allow"><ShieldCheck className="w-4 h-4" /></button>
-                      <button onClick={() => handleAction(a.id, "Ask MFA", "mfa")} className="p-1.5 rounded-md hover:bg-warning/20 text-warning transition-colors" title="Ask MFA"><Key className="w-4 h-4" /></button>
+                      <button onClick={() => setMfaAlert({ id: a.id, customer: a.customer })} className="p-1.5 rounded-md hover:bg-warning/20 text-warning transition-colors" title="Ask MFA"><Key className="w-4 h-4" /></button>
                       <button onClick={() => handleAction(a.id, "Block", "blocked")} className="p-1.5 rounded-md hover:bg-destructive/20 text-destructive transition-colors" title="Block"><ShieldAlert className="w-4 h-4" /></button>
                     </div>
                   </td>
@@ -169,6 +171,15 @@ function FraudAlertsPage() {
           <span>Updated just now</span>
         </div>
       </GlassCard>
+
+      {mfaAlert && (
+        <AskMFAModal
+          customerName={mfaAlert.customer}
+          onClose={() => setMfaAlert(null)}
+          onSuccess={() => handleAction(mfaAlert.id, "Allow (Verified)", "safe")}
+          onBlocked={() => handleAction(mfaAlert.id, "Block (Failed)", "blocked")}
+        />
+      )}
     </div>
   );
 }

@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ShieldCheck, ShieldAlert, TrendingDown, RefreshCw, Zap, Clock, Info, AlertTriangle } from "lucide-react";
+import { ShieldCheck, ShieldAlert, TrendingDown, RefreshCw, Zap, Clock, Info, AlertTriangle, KeyRound } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AskMFAModal } from "@/components/ask-mfa-modal";
 
 export const Route = createFileRoute("/decision-simulator")({
   component: DecisionSimulator,
@@ -40,6 +41,7 @@ function DecisionSimulator() {
   // Result State
   const [result, setResult] = useState<SimulationResult | null>(null);
   const [history, setHistory] = useState<SimulationResult[]>([]);
+  const [mfaOpen, setMfaOpen] = useState(false);
 
   // Load history on mount
   useEffect(() => {
@@ -349,6 +351,11 @@ function DecisionSimulator() {
                       {result.recommendation === "Offer Cashback" && <TrendingDown className="h-6 w-6" />}
                       {result.recommendation}
                     </div>
+                    {result.recommendation === "Ask MFA" && (
+                      <Button variant="outline" size="sm" className="mt-2" onClick={() => setMfaOpen(true)}>
+                        <KeyRound className="h-4 w-4 mr-2" /> Test MFA Flow
+                      </Button>
+                    )}
                   </div>
 
                   {/* Scores Grid */}
@@ -430,6 +437,19 @@ function DecisionSimulator() {
             ))}
           </div>
         </div>
+      )}
+
+      {mfaOpen && result && (
+        <AskMFAModal
+          customerName={result.customerName}
+          onClose={() => setMfaOpen(false)}
+          onSuccess={() => {
+            setResult({ ...result, recommendation: "Allow" });
+          }}
+          onBlocked={() => {
+            setResult({ ...result, recommendation: "Block" });
+          }}
+        />
       )}
     </div>
   );
